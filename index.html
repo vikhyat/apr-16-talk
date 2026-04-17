@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Moondream — a quick talk</title>
+<style>
+  :root {
+    --paper: #f3efe6;
+    --ink: #0a0a0a;
+    --muted: #555555;
+    --rule: #0a0a0a;
+    --green: #1f7a1f;
+    --red: #c81e1e;
+    --orange: #d65a14;
+    --yellow: #f5c518;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Helvetica Neue", Helvetica, Arial, ui-sans-serif, system-ui, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  .deck { position: relative; width: 100vw; height: 100vh; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 6vh 5vw;
+    text-align: left;
+  }
+  .slide.active { display: flex; }
+
+  /* Headings: ALL CAPS, 900 weight, tight */
+  .slide h1 {
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.035em;
+    line-height: 0.92;
+    margin: 0 0 0.5em;
+  }
+  .slide h2 {
+    font-size: clamp(2.4rem, 5.5vw, 4.5rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+    margin: 0 0 0.6em;
+    border-bottom: 6px solid var(--ink);
+    padding-bottom: 0.15em;
+  }
+  .slide p, .slide li {
+    font-size: clamp(1.5rem, 2.6vw, 2.4rem);
+    line-height: 1.35;
+    max-width: 32ch;
+    font-weight: 500;
+  }
+  .slide ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .slide li {
+    margin-bottom: 0.6em;
+    padding-left: 1.4em;
+    position: relative;
+  }
+  .slide li::before {
+    content: "■";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--ink);
+  }
+
+  .muted { color: var(--muted); }
+  .ink { color: var(--ink); }
+  .accent-green { color: var(--green); font-weight: 900; }
+  .accent-red { color: var(--red); font-weight: 900; }
+  .accent-orange { color: var(--orange); font-weight: 900; }
+
+  /* Highlight block — solid bg, paper text */
+  .hl {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0 0.18em;
+    display: inline-block;
+    font-weight: 900;
+  }
+  .hl-green { background: var(--green); color: var(--paper); padding: 0 0.18em; display: inline-block; font-weight: 900; }
+  .hl-red { background: var(--red); color: var(--paper); padding: 0 0.18em; display: inline-block; font-weight: 900; }
+  .hl-orange { background: var(--orange); color: var(--paper); padding: 0 0.18em; display: inline-block; font-weight: 900; }
+  .hl-yellow { background: var(--yellow); color: var(--ink); padding: 0 0.18em; display: inline-block; font-weight: 900; }
+
+  /* Kicker label */
+  .kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: clamp(0.95rem, 1.3vw, 1.2rem);
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 1.5em;
+    border-top: 4px solid var(--ink);
+    border-bottom: 4px solid var(--ink);
+    padding: 0.4em 0.6em;
+    display: inline-block;
+  }
+
+  /* Opener (screenshot) */
+  .opener {
+    background: #1a1a1a;
+    padding: 0;
+    justify-content: center;
+    align-items: center;
+  }
+  .opener img {
+    max-width: 92vw;
+    max-height: 92vh;
+    border: 8px solid var(--paper);
+  }
+
+  /* Brutalist statement slides */
+  .brutal-text {
+    font-weight: 900;
+    font-size: clamp(3.5rem, 12vw, 13rem);
+    line-height: 0.88;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+    margin: 0;
+    max-width: 100%;
+  }
+  .brutal-accent { white-space: nowrap; }
+
+  /* "Big" centered statement */
+  .stmt {
+    font-size: clamp(4rem, 10.5vw, 9rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.04em;
+    line-height: 0.92;
+    margin: 0;
+    max-width: none;
+  }
+
+  /* Stack diagram — hard-edged blocks */
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 0.5em;
+    width: min(820px, 90vw);
+    border: 4px solid var(--ink);
+  }
+  .layer {
+    padding: 1.1em 1.4em;
+    border-bottom: 4px solid var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    background: var(--paper);
+  }
+  .layer:last-child { border-bottom: none; }
+  .layer .name {
+    font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    flex: 1;
+  }
+  .layer .tag {
+    font-size: clamp(1rem, 1.4vw, 1.3rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .layer.us {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .layer.us .tag { color: var(--yellow); }
+
+  /* Compare two cols */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 0.5em;
+    width: 100%;
+    max-width: 1100px;
+    border: 4px solid var(--ink);
+  }
+  .compare .col {
+    padding: 1.5em 1.6em;
+    border-right: 4px solid var(--ink);
+  }
+  .compare .col:last-child { border-right: none; }
+  .compare .col.bad { background: var(--paper); }
+  .compare .col.good { background: var(--ink); color: var(--paper); }
+  .compare h3 {
+    margin: 0 0 0.6em;
+    font-size: clamp(1.3rem, 2vw, 1.8rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .compare .bad h3 { color: var(--red); }
+  .compare .good h3 { color: var(--yellow); }
+  .compare ul { padding: 0; }
+  .compare li {
+    font-size: clamp(1.1rem, 1.7vw, 1.55rem);
+    margin-bottom: 0.5em;
+    max-width: none;
+    padding-left: 1.2em;
+  }
+  .compare .good li::before { color: var(--paper); }
+
+  /* Who slide — pfp + logo */
+  .who {
+    display: flex;
+    align-items: center;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    margin-bottom: 1em;
+  }
+  .who .pfp,
+  .who .logo {
+    width: clamp(140px, 18vw, 220px);
+    height: clamp(140px, 18vw, 220px);
+    object-fit: cover;
+    border: 6px solid var(--ink);
+  }
+  .who .logo { background: var(--paper); }
+  .who .x {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 900;
+    color: var(--ink);
+  }
+  .who-labels {
+    display: flex;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    margin-bottom: 1.5em;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+  }
+  .who-labels span {
+    width: clamp(140px, 18vw, 220px);
+    text-align: center;
+  }
+  .who-labels .gap {
+    width: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  /* Title-ish slide (thanks) */
+  .center-slide {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Video slide */
+  .video-slide {
+    padding: 0;
+    background: var(--ink);
+    justify-content: center;
+    align-items: center;
+  }
+  .video-slide video {
+    max-width: 96vw;
+    max-height: 92vh;
+    border: 6px solid var(--paper);
+  }
+  .video-slide .caption {
+    position: absolute;
+    top: 24px;
+    left: 32px;
+    color: var(--paper);
+    font-size: 0.9rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 900;
+    background: var(--red);
+    padding: 0.3em 0.7em;
+  }
+
+  /* Quote slide */
+  .quote {
+    font-size: clamp(2rem, 4.6vw, 3.6rem);
+    line-height: 1.15;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.025em;
+    max-width: 22ch;
+    margin: 0;
+  }
+
+  /* Triple-emphasis row */
+  .triple {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em;
+    margin-top: 0.3em;
+  }
+  .triple span {
+    font-size: clamp(2.4rem, 6vw, 5rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+    padding: 0 0.2em;
+    color: var(--paper);
+  }
+  .triple .a { background: var(--orange); }
+  .triple .b { background: var(--red); }
+  .triple .c { background: var(--ink); }
+
+  /* Slide footer rule */
+  .slide-num {
+    position: absolute;
+    bottom: 18px;
+    right: 22px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 8px;
+    background: var(--ink);
+    width: 0;
+    transition: width 0.25s ease;
+    z-index: 10;
+  }
+  .hint {
+    position: fixed;
+    bottom: 18px;
+    left: 22px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+  }
+  .opener .slide-num, .opener .hint { color: var(--paper); }
+  .video-slide .slide-num { color: var(--paper); }
+
+  .timer {
+    position: fixed;
+    top: 14px;
+    right: 22px;
+    font-family: ui-monospace, "JetBrains Mono", Menlo, monospace;
+    font-size: 1.05rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.35em 0.7em;
+    letter-spacing: 0.08em;
+    z-index: 11;
+    border: 3px solid var(--ink);
+  }
+  .timer.warn { background: var(--yellow); color: var(--ink); border-color: var(--ink); }
+  .timer.danger { background: var(--red); color: var(--paper); border-color: var(--ink); }
+  .timer.over { background: var(--red); color: var(--paper); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0.35; } }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+  <!-- 1. Opener -->
+  <section class="slide opener active">
+    <img src="opener.png" alt="Claude Code prompt: Create slides for my talk. Make no mistakes.">
+  </section>
+
+  <!-- 2. SOLVED -->
+  <section class="slide">
+    <div class="brutal-text">
+      Computer<br>
+      Vision<br>
+      <span class="brutal-accent hl-green">is&nbsp;solved.</span>
+    </div>
+  </section>
+
+  <!-- 3. What I mean -->
+  <section class="slide">
+    <h2>What I mean</h2>
+    <p>For pretty much <span class="hl">any</span> vision task you can name, we know how to build a model that solves it.</p>
+    <p class="muted" style="margin-top: 1.2em;">Detection. OCR. VQA. Grounding. Counting. Pose. Captioning. Document parsing. UI understanding.</p>
+  </section>
+
+  <!-- 4. NOT SOLVED -->
+  <section class="slide">
+    <div class="brutal-text">
+      Computer<br>
+      Vision<br>
+      <span class="brutal-accent hl-red">is&nbsp;not&nbsp;solved.</span>
+    </div>
+  </section>
+
+  <!-- 5. Why — cost / speed / latency -->
+  <section class="slide">
+    <h2>Because this matters</h2>
+    <div class="triple">
+      <span class="a">Cost</span>
+      <span class="b">Speed</span>
+      <span class="c">Latency</span>
+    </div>
+    <p style="margin-top: 1.5em;">A model that's right but takes 2 seconds and a $40k GPU is useless for a robot, a camera, a phone, a drone, a doorbell.</p>
+  </section>
+
+  <!-- 6. I work at Moondream -->
+  <section class="slide center-slide">
+    <div class="who">
+      <img class="pfp" src="vik_pfp.jpg" alt="Vik">
+      <span class="x">×</span>
+      <img class="logo" src="md_logo.svg" alt="Moondream">
+    </div>
+    <div class="who-labels">
+      <span>@vikhyatk</span>
+      <span class="gap"></span>
+      <span>moondream</span>
+    </div>
+    <p class="stmt" style="margin-top: 1em;">Every machine on Earth<br>will <span class="hl-orange">see</span>.</p>
+    <p style="margin-top: 1.4em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; max-width: 36ch; font-size: clamp(1.2rem, 1.8vw, 1.6rem);">We're building the stack that gets it there.</p>
+  </section>
+
+  <!-- 7. How: own the stack -->
+  <section class="slide">
+    <h2>Own the whole stack</h2>
+    <div class="stack">
+      <div class="layer us"><span class="name">Model architecture</span><span class="tag">ours</span></div>
+      <div class="layer us"><span class="name">Training data</span><span class="tag">ours</span></div>
+      <div class="layer us"><span class="name">Inference engine</span><span class="tag">ours</span></div>
+      <div class="layer us"><span class="name">Fine-tuning</span><span class="tag">ours</span></div>
+    </div>
+  </section>
+
+  <!-- 8. Don't own a layer? + compare (merged) -->
+  <section class="slide">
+    <h2>Don't own a layer?</h2>
+    <p style="margin-bottom: 1em;">You make <span class="hl-red">suboptimal decisions</span> at the layer above it.</p>
+    <div class="compare">
+      <div class="col bad">
+        <h3>Rent the stack</h3>
+        <ul>
+          <li>Stuck with someone else's tradeoffs</li>
+          <li>Optimization stops at your layer's edge</li>
+          <li>Their roadmap is your roadmap</li>
+        </ul>
+      </div>
+      <div class="col good">
+        <h3>Own the stack</h3>
+        <ul>
+          <li>Co-design model and runtime</li>
+          <li>Optimize end-to-end, not piecewise</li>
+          <li>Ship things nobody else can</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. Fast inference ≠ kernels -->
+  <section class="slide">
+    <h2>Fast inference ≠ kernels</h2>
+    <p>Once the matmul is fast,<br><span class="hl-orange">everything else</span> becomes the bottleneck.</p>
+    <p class="muted" style="margin-top: 1.2em;">CPU scheduling. Memory layout. Tokenization. Image preprocessing.</p>
+  </section>
+
+  <!-- 11. Hype reel — closing demo -->
+  <section class="slide video-slide" data-video>
+    <div class="caption">moondream · live</div>
+    <video id="hype" src="hype_reel.mp4" muted playsinline loop preload="auto"></video>
+  </section>
+
+</div>
+
+<div class="hint">← / → · F fullscreen · V replay video</div>
+<div class="slide-num"><span id="cur">1</span> / <span id="total">1</span></div>
+<div class="timer" id="timer">10:00</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  document.getElementById('total').textContent = total;
+  let idx = 0;
+
+  function show(i) {
+    idx = Math.max(0, Math.min(total - 1, i));
+    slides.forEach((s, n) => s.classList.toggle('active', n === idx));
+    document.getElementById('cur').textContent = idx + 1;
+    document.getElementById('progress').style.width = ((idx + 1) / total * 100) + '%';
+
+    document.querySelectorAll('video').forEach(v => { v.pause(); });
+    const v = slides[idx].querySelector('video');
+    if (v) { v.currentTime = 0; v.play().catch(() => {}); }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { show(idx + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { show(idx - 1); e.preventDefault(); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(total - 1);
+    else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    else if (e.key === 'v' || e.key === 'V') {
+      const v = slides[idx].querySelector('video');
+      if (v) { v.currentTime = 0; v.play().catch(() => {}); }
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('a') || e.target.tagName === 'VIDEO') return;
+    show(idx + 1);
+  });
+
+  show(0);
+
+  // 10-minute countdown timer (resets on refresh)
+  const timerStart = Date.now();
+  const timerTotal = 10 * 60;
+  const timerEl = document.getElementById('timer');
+  function tick() {
+    const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+    const remaining = timerTotal - elapsed;
+    const over = remaining < 0;
+    const abs = Math.abs(remaining);
+    const m = Math.floor(abs / 60);
+    const s = abs % 60;
+    timerEl.textContent = (over ? '-' : '') + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    timerEl.classList.toggle('warn', remaining <= 120 && remaining > 60);
+    timerEl.classList.toggle('danger', remaining <= 60 && remaining > 0);
+    timerEl.classList.toggle('over', remaining <= 0);
+  }
+  tick();
+  setInterval(tick, 1000);
+</script>
+</body>
+</html>
