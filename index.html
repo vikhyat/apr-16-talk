@@ -560,12 +560,12 @@
         <h3>F.linear overhead</h3>
         <p>~10µs per call. Bypassed PyTorch, went direct to cublasLt.</p>
       </div>
-      <div class="war-card inv">
+      <div class="war-card">
         <span class="num n-orange">03</span>
         <h3>MoE kernel</h3>
         <p>Our CuTe / WGMMA kernel beats Triton ~25% at 4k tokens.</p>
       </div>
-      <div class="war-card">
+      <div class="war-card inv">
         <span class="num n-red">04</span>
         <h3>Cold start 14.4s → 2.7s</h3>
         <p>5.4× faster boot. Matters for serverless.</p>
@@ -580,22 +580,22 @@
         <h3>Our own dispatch</h3>
         <p>pybridge → DLPack. Skipped the PyTorch dispatcher entirely.</p>
       </div>
-      <div class="war-card">
+      <div class="war-card inv">
         <span class="num n-red">07</span>
         <h3>CUDA graphs</h3>
         <p>For the vision encoder. Capture once, replay forever.</p>
       </div>
-      <div class="war-card inv">
+      <div class="war-card">
         <span class="num n-orange">08</span>
         <h3>KV eviction O(n) → O(1)</h3>
         <p>Tracked evictable page counts incrementally.</p>
       </div>
-      <div class="war-card inv">
+      <div class="war-card">
         <span class="num n-red">09</span>
         <h3>Fused O-proj + residual</h3>
         <p>One cublasLt call instead of two ops. -6µs / layer / step.</p>
       </div>
-      <div class="war-card">
+      <div class="war-card inv">
         <span class="num n-green">10</span>
         <h3>77 allocations killed</h3>
         <p>Scratch buffer pool eliminates 77 <code>torch.empty</code> per prefill.</p>
